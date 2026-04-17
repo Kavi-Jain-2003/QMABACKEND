@@ -61,48 +61,88 @@ public class QuantityMeasurementController {
         return "anonymous";
     }
 
+    private String formatQuantity(QuantityDTO dto) {
+        if (dto == null) return "";
+        return dto.getValue() + " " + dto.getUnit();
+    }
+
+    private String buildInput(String op, QuantityMeasurementDTO input) {
+        String left = formatQuantity(input.getThisQuantityDTO());
+        String right = formatQuantity(input.getThatQuantityDTO());
+
+        return switch (op) {
+            case "COMPARE" -> left + " vs " + right;
+            case "ADD" -> left + " + " + right;
+            case "SUBTRACT" -> left + " - " + right;
+            case "MULTIPLY" -> left + " * " + right;
+            case "DIVIDE" -> left + " / " + right;
+            case "CONVERT" -> left + " to " + right;
+            default -> left + " " + op + " " + right;
+        };
+    }
+
+    private void storeHistory(String op, QuantityMeasurementDTO input, QuantityMeasurementEntity result, HttpServletRequest request) {
+        if (result == null) return;
+
+        String resultText = result.getError() != null && !result.getError().isBlank()
+                ? result.getError()
+                : String.valueOf(result.getResult());
+        String status = result.getError() != null && !result.getError().isBlank()
+                ? "FAILED"
+                : "SUCCESS";
+
+        try {
+            historyService.saveHistory(op, buildInput(op, input), resultText, status, getUser(request));
+        } catch (Exception e) {
+            System.err.println("History save failed for " + op + ": " + e.getMessage());
+        }
+    }
+
     private QuantityMeasurementEntity execute(String op,
                                               QuantityMeasurementDTO input,
-                                              Supplier<QuantityMeasurementEntity> action) {
+                                              Supplier<QuantityMeasurementEntity> action,
+                                              HttpServletRequest request) {
         QuantityMeasurementEntity result;
         try {
             result = action.get();
         } catch (Exception e) {
             result = new QuantityMeasurementEntity(e.getMessage());
         }
+
+        storeHistory(op, input, result, request);
         return result;
     }
 
     // ================= OPERATIONS =================
 
     @PostMapping("/compare")
-    public QuantityMeasurementEntity compare(@RequestBody QuantityMeasurementDTO input) {
-        return execute("COMPARE", input, () -> service.compare(getQ1(input), getQ2(input)));
+    public QuantityMeasurementEntity compare(@RequestBody QuantityMeasurementDTO input, HttpServletRequest request) {
+        return execute("COMPARE", input, () -> service.compare(getQ1(input), getQ2(input)), request);
     }
 
     @PostMapping("/add")
-    public QuantityMeasurementEntity add(@RequestBody QuantityMeasurementDTO input) {
-        return execute("ADD", input, () -> service.add(getQ1(input), getQ2(input)));
+    public QuantityMeasurementEntity add(@RequestBody QuantityMeasurementDTO input, HttpServletRequest request) {
+        return execute("ADD", input, () -> service.add(getQ1(input), getQ2(input)), request);
     }
 
     @PostMapping("/subtract")
-    public QuantityMeasurementEntity subtract(@RequestBody QuantityMeasurementDTO input) {
-        return execute("SUBTRACT", input, () -> service.subtract(getQ1(input), getQ2(input)));
+    public QuantityMeasurementEntity subtract(@RequestBody QuantityMeasurementDTO input, HttpServletRequest request) {
+        return execute("SUBTRACT", input, () -> service.subtract(getQ1(input), getQ2(input)), request);
     }
 
     @PostMapping("/divide")
-    public QuantityMeasurementEntity divide(@RequestBody QuantityMeasurementDTO input) {
-        return execute("DIVIDE", input, () -> service.divide(getQ1(input), getQ2(input)));
+    public QuantityMeasurementEntity divide(@RequestBody QuantityMeasurementDTO input, HttpServletRequest request) {
+        return execute("DIVIDE", input, () -> service.divide(getQ1(input), getQ2(input)), request);
     }
 
     @PostMapping("/multiply")
-    public QuantityMeasurementEntity multiply(@RequestBody QuantityMeasurementDTO input) {
-        return execute("MULTIPLY", input, () -> service.multiply(getQ1(input), getQ2(input)));
+    public QuantityMeasurementEntity multiply(@RequestBody QuantityMeasurementDTO input, HttpServletRequest request) {
+        return execute("MULTIPLY", input, () -> service.multiply(getQ1(input), getQ2(input)), request);
     }
 
     @PostMapping("/convert")
-    public QuantityMeasurementEntity convert(@RequestBody QuantityMeasurementDTO input) {
-        return execute("CONVERT", input, () -> service.convert(getQ1(input), getQ2(input)));
+    public QuantityMeasurementEntity convert(@RequestBody QuantityMeasurementDTO input, HttpServletRequest request) {
+        return execute("CONVERT", input, () -> service.convert(getQ1(input), getQ2(input)), request);
     }
 
     // ================= HISTORY =================
