@@ -23,13 +23,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers(
-                    "/measurement/**",
-                    "/v3/api-docs/**",
-                    "/swagger-ui/**",
-                    "/swagger-ui.html"
-                ).permitAll()
-                .anyRequest().authenticated()
+                .anyRequest().permitAll()   // Gateway already validates JWT
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
