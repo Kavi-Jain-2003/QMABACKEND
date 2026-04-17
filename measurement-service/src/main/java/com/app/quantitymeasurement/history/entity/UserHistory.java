@@ -21,6 +21,7 @@ public class UserHistory {
 
     private String status;
 
+    @Column(name = "history_timestamp")
     private LocalDateTime timestamp;
 
     private String username;
