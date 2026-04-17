@@ -3,6 +3,7 @@ package com.app.quantitymeasurement.auth;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.*;
@@ -64,19 +65,57 @@ public class AuthController {
 
     // ================= REGISTER =================
     @PostMapping("/register")
-    public String register(@RequestBody User user) {
+    public ResponseEntity<?> register(@RequestBody User user) {
+        try {
+            String username = user.getUsername();
+            String password = user.getPassword();
 
-        if (userRepository.existsByUsername(user.getUsername())) {
-            return "user already exists";
+            if (username == null || username.isBlank()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "status", 400,
+                        "message", "username is required"
+                ));
+            }
+
+            if (password == null || password.isBlank()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "status", 400,
+                        "message", "password is required"
+                ));
+            }
+
+            username = username.trim();
+
+            if (userRepository.existsByUsername(username)) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(
+                        "status", 409,
+                        "message", "user already exists"
+                ));
+            }
+
+            user.setUsername(username);
+            user.setPassword(passwordEncoder.encode(password));
+            user.setRole("ROLE_USER");
+            user.setProvider("LOCAL");
+
+            userRepository.save(user);
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
+                    "status", 201,
+                    "message", "user registered successfully"
+            ));
+        } catch (DataIntegrityViolationException ex) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(
+                    "status", 409,
+                    "message", "registration failed because the user already exists or data is invalid"
+            ));
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "status", 500,
+                    "message", "registration failed"
+            ));
         }
-
-        user.setPassword(passwordEncoder.encode(user.getPassword())); // 🔥 IMPORTANT
-        user.setRole("ROLE_USER");
-        user.setProvider("LOCAL");
-
-        userRepository.save(user);
-
-        return "user registered successfully";
     }
 
     // ================= GOOGLE LOGIN =================
