@@ -105,6 +105,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 @RestController
 @RequestMapping("/measurement")
@@ -174,54 +175,50 @@ public class QuantityMeasurementController {
         saveHistorySafely(op, buildInput(op, input), resultText, status);
     }
 
+    private QuantityMeasurementEntity execute(String op,
+                                              QuantityMeasurementDTO input,
+                                              Supplier<QuantityMeasurementEntity> action) {
+        QuantityMeasurementEntity result;
+        try {
+            result = action.get();
+        } catch (Exception e) {
+            result = new QuantityMeasurementEntity(e.getMessage());
+        }
+
+        storeHistory(op, input, result);
+        return result;
+    }
+
     // ================= OPERATIONS =================
 
     @PostMapping("/compare")
     public QuantityMeasurementEntity compare(@RequestBody QuantityMeasurementDTO input) {
-
-        QuantityMeasurementEntity result = service.compare(getQ1(input), getQ2(input));
-        storeHistory("COMPARE", input, result);
-        return result;
+        return execute("COMPARE", input, () -> service.compare(getQ1(input), getQ2(input)));
     }
 
     @PostMapping("/add")
     public QuantityMeasurementEntity add(@RequestBody QuantityMeasurementDTO input) {
-
-        QuantityMeasurementEntity result = service.add(getQ1(input), getQ2(input));
-        storeHistory("ADD", input, result);
-        return result;
+        return execute("ADD", input, () -> service.add(getQ1(input), getQ2(input)));
     }
 
     @PostMapping("/subtract")
     public QuantityMeasurementEntity subtract(@RequestBody QuantityMeasurementDTO input) {
-
-        QuantityMeasurementEntity result = service.subtract(getQ1(input), getQ2(input));
-        storeHistory("SUBTRACT", input, result);
-        return result;
+        return execute("SUBTRACT", input, () -> service.subtract(getQ1(input), getQ2(input)));
     }
 
     @PostMapping("/divide")
     public QuantityMeasurementEntity divide(@RequestBody QuantityMeasurementDTO input) {
-
-        QuantityMeasurementEntity result = service.divide(getQ1(input), getQ2(input));
-        storeHistory("DIVIDE", input, result);
-        return result;
+        return execute("DIVIDE", input, () -> service.divide(getQ1(input), getQ2(input)));
     }
 
     @PostMapping("/multiply")
     public QuantityMeasurementEntity multiply(@RequestBody QuantityMeasurementDTO input) {
-
-        QuantityMeasurementEntity result = service.multiply(getQ1(input), getQ2(input));
-        storeHistory("MULTIPLY", input, result);
-        return result;
+        return execute("MULTIPLY", input, () -> service.multiply(getQ1(input), getQ2(input)));
     }
 
     @PostMapping("/convert")
     public QuantityMeasurementEntity convert(@RequestBody QuantityMeasurementDTO input) {
-
-        QuantityMeasurementEntity result = service.convert(getQ1(input), getQ2(input));
-        storeHistory("CONVERT", input, result);
-        return result;
+        return execute("CONVERT", input, () -> service.convert(getQ1(input), getQ2(input)));
     }
 
     // ================= HISTORY =================
