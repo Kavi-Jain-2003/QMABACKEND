@@ -22,7 +22,7 @@ public class UserHistory {
     private String status;
 
     @Column(name = "history_timestamp")
-    private LocalDateTime timestamp;
+    private LocalDateTime historyTimestamp;
 
     private String username;
 
@@ -35,7 +35,7 @@ public class UserHistory {
         this.outputData = outputData;
         this.status = status;
         this.username = username;
-        this.timestamp = LocalDateTime.now();
+        this.historyTimestamp = LocalDateTime.now();
     }
 
     // getters + setters
@@ -54,8 +54,8 @@ public class UserHistory {
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 
-    public LocalDateTime getTimestamp() { return timestamp; }
-    public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
+    public LocalDateTime getHistoryTimestamp() { return historyTimestamp; }
+    public void setHistoryTimestamp(LocalDateTime historyTimestamp) { this.historyTimestamp = historyTimestamp; }
 
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }

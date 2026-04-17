@@ -31,7 +31,7 @@ public class UserHistoryService {
         history.setOutputData(output);
         history.setStatus(status);
         history.setUsername(username);
-        history.setTimestamp(LocalDateTime.now());
+        history.setHistoryTimestamp(LocalDateTime.now());
 
         UserHistory saved = repository.saveAndFlush(history);
         System.out.println("HISTORY SAVED: " + type + " id=" + saved.getId());
@@ -39,7 +39,7 @@ public class UserHistoryService {
 
     @Transactional(readOnly = true)
     public List<UserHistory> getHistoryByUsername(String username) {
-        return repository.findByUsernameOrderByTimestampDesc(username);
+        return repository.findByUsernameOrderByHistoryTimestampDesc(username);
     }
 
     @Transactional
