@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 public class JwtUtil {
 
 	private final String SECRET = "mysecretkeymysecretkeymysecretkey123";
+    
 
 	private Key key = Keys.hmacShaKeyFor(SECRET.getBytes());
 
